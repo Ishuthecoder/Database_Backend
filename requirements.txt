@@ -1,0 +1,17 @@
+flask
+flask-cors
+python-dotenv
+phi-agent
+phi-model-groq
+phi-tools-googlesearch
+phi-tools-baidusearch
+phi-tools-duckduckgo
+phi-tools-crawl4ai
+phi-storage-agent-sqlite
+pymongo
+googlesearch-python
+pycountry
+requests
+beautifulsoup4
+google-generativeai
+groq
