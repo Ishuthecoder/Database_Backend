@@ -1110,10 +1110,45 @@ class CustomGoogleSearch:
         self.proxy: Optional[str] = proxy
         self.timeout: Optional[int] = timeout
 
+    def extract_number_from_query(self, query: str) -> tuple[str, int]:
+        """
+        Extract the number of requested results from the query.
+        Returns the cleaned query and the number of results to fetch.
+        """
+        # Common patterns for number of results
+        patterns = [
+            r'top\s+(\d+)',  # matches "top 10", "top 20", etc.
+            r'(\d+)\s+best',  # matches "10 best", "20 best", etc.
+            r'(\d+)\s+schools',  # matches "10 schools", "20 schools", etc.
+            r'(\d+)\s+colleges',  # matches "10 colleges", "20 colleges", etc.
+            r'(\d+)\s+universities',  # matches "10 universities", etc.
+            r'(\d+)\s+results',  # matches "10 results", etc.
+        ]
+        
+        # Default number of results if no number is found
+        default_results = 5
+        extracted_number = default_results
+        
+        # Try to find a number in the query
+        for pattern in patterns:
+            match = re.search(pattern, query.lower())
+            if match:
+                extracted_number = int(match.group(1))
+                break
+        
+        return query, extracted_number
+
     def search(self, query: str, max_results: int = 5, language: str = "en") -> str:
         """
         Search Google for a specified query with site-specific filtering.
         """
+        # Extract the number of results from the query
+        query, extracted_max_results = self.extract_number_from_query(query)
+        
+        # Use the extracted number if it's larger than the default
+        max_results = max(extracted_max_results, max_results)
+        
+        # Use fixed max results if specified in initialization
         max_results = self.fixed_max_results or max_results
         language = self.fixed_language or language
 
@@ -1130,7 +1165,7 @@ class CustomGoogleSearch:
         # Add site-specific filter
         site_specific_query = f"{query} site:allschoolscolleges.com"
 
-        # Perform Google search
+        # Perform Google search with the extracted number of results
         results = list(search(site_specific_query, num_results=max_results, lang=language, proxy=self.proxy, advanced=True))
 
         # Collect the search results
@@ -1157,7 +1192,7 @@ def custom_search():
     try:
         data = request.json
         query = data.get('query', '')
-        max_results = data.get('max_results', 5)
+        max_results = data.get('max_results', 5)  # Default to 5 if not specified
         language = data.get('language', 'en')
 
         if not query:
